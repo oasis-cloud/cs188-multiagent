@@ -150,7 +150,36 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        def minimax(gameState, agentIndex = 0, depth = self.depth):
+            # 题目要求可以指定扩展的层级
+            if gameState.isWin() or gameState.isLose() or depth == 0:
+                return (self.evaluationFunction(gameState), None)
+            numAgents = gameState.getNumAgents()
+            nextDepth = depth
+            # 所有智能体走完一轮算 1 个 depth
+            nextAgentIndex = (agentIndex + 1) % numAgents
+            nextDepth = depth
+            if nextAgentIndex == 0:
+                nextDepth -= 1
+            # 获取当前 Agent 的可用动作
+            actions = gameState.getLegalActions(agentIndex)
+            # 一轮博弈是 Pacman 先走，然后每个 Ghost 轮流走
+            list = []
+            for action in actions:
+                successorGameState = gameState.generateSuccessor(agentIndex, action)
+                v = minimax(successorGameState, nextAgentIndex, nextDepth)
+                list.append((v[0], action))
+            if agentIndex == 0:
+                # 求最大值
+                maxValue = max(list, key=lambda x: x[0])
+                return maxValue
+            else:
+                # 求最小值，也就是所有 ghost 求 minvalue
+                minValue = min(list, key=lambda x: x[0])
+                return minValue
+        
+        value = minimax(gameState)
+        return value[1]
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
