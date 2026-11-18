@@ -75,7 +75,21 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
 
         "*** YOUR CODE HERE ***"
-        return successorGameState.getScore()
+        # 没有食物或 ghost    
+        if len(newFood.asList()) == 0:
+            return successorGameState.getScore()
+        # 靠近食物的权重越高
+        food_distance = min([manhattanDistance(newPos, food) for food in newFood.asList()])
+        food_weight = 1 / (1 if food_distance == 0 else food_distance)
+        # 靠近 ghost 的权重越高
+        ghost_distance = min([manhattanDistance(newPos, ghost.getPosition()) for ghost in newGhostStates])
+        ghost_weight = 1 / (1 if ghost_distance == 0 else ghost_distance) 
+        
+        # 当 PacMan 吃到 power pellet 时，食物的权重越高
+        scaredTime = max(newScaredTimes)
+        new_food_weight = food_weight * (1 if scaredTime == 0 else scaredTime)    
+
+        return successorGameState.getScore() + new_food_weight - ghost_weight
 
 def scoreEvaluationFunction(currentGameState: GameState):
     """
