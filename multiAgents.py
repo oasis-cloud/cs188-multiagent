@@ -191,7 +191,54 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # util.raiseNotDefined()
+        # alpha 初始为负无穷，是因为 max 取最大值，当进入第一个最大值检查时，要能保证第一个值赋值给 alpha，相当于 max(第一个值， -inf)
+        # beta 初始为正无穷，是因为 min 取最小值，当进入第一个最小值检查时，要能保证第一个值赋值给 beta，相当于 min(第一个值， inf)
+        def alphaBetaMinMax(gameState, agentIndex = 0, depth = self.depth, alpha = float('-inf'), beta = float('inf')):
+            # 定义递归函数的终止条件
+            if gameState.isWin() or gameState.isLose() or depth == 0:
+                return (self.evaluationFunction(gameState), None)
+            # 此函数支持多智能体，所以要根据智能体数量计算 depth 的变化
+            numAgents = gameState.getNumAgents()
+            nextDepth = depth
+            # 所有智能体走完一轮算 1 个 depth
+            nextAgentIndex = (agentIndex + 1) % numAgents
+            nextDepth = depth
+            if nextAgentIndex == 0:
+                nextDepth -= 1
+            # 获取当前 Agent 的可用动作
+            actions = gameState.getLegalActions(agentIndex)
+            # 一轮博弈是 Pacman 先走，然后每个 Ghost 轮流走
+            # 执行 min 的时候给 alpha 赋值，执行 max 的时候给 beta 赋值
+            list = []
+            for action in actions:
+                successorGameState = gameState.generateSuccessor(agentIndex, action)
+                v = alphaBetaMinMax(successorGameState, nextAgentIndex, nextDepth, alpha, beta)
+                print('alpha:', alpha, ' beta:', beta, ' agentIndex:', agentIndex, ' action:', action, ' v:', v[0])
+                if agentIndex == 0:
+                    # 求最大值，因为 PacMan 是 第一个，所以这里相当于在做 maxValue 的处理
+                    alpha = max(alpha, v[0])
+                    list.append((v[0], action))
+                    if alpha > beta:
+                        break
+                else:
+                    # 求最小值，也就是所有 ghost 求 minvalue
+                    beta = min(beta, v[0])
+                    list.append((v[0], action))
+                    if alpha > beta:
+                        print('min break:', alpha, beta, agentIndex, action, v[0])
+                        break
+            if agentIndex == 0:
+                # 求最大值
+                maxValue = max(list, key=lambda x: x[0])
+                return maxValue
+            else:
+                # 求最小值，也就是所有 ghost 求 minvalue
+                minValue = min(list, key=lambda x: x[0])
+                return minValue
+
+        value = alphaBetaMinMax(gameState)
+        return value[1]
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
