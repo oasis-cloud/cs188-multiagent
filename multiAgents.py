@@ -296,7 +296,46 @@ def betterEvaluationFunction(currentGameState: GameState):
     DESCRIPTION: <write something here so we know what you did>
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # util.raiseNotDefined()
+    newPos = currentGameState.getPacmanPosition()
+    newFood = currentGameState.getFood()
+    newGhostStates = currentGameState.getGhostStates()
+    newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
+
+    "*** YOUR CODE HERE ***"
+    # 没有食物或 ghost    
+    if len(newFood.asList()) == 0:
+        return currentGameState.getScore()
+    # 靠近食物的权重越高
+    fen = 20
+    food_distance = min([manhattanDistance(newPos, food) for food in newFood.asList()])
+    food_weight = 0
+    if food_distance == 0:
+        food_weight = fen
+    else:
+        food_weight = fen * (1 / food_distance)
+    # 胶囊距离
+    capsules = currentGameState.getCapsules()
+    if len(capsules) > 0:
+        capsule_distance = min([manhattanDistance(newPos, capsule) for capsule in capsules])
+        if capsule_distance == 0:
+            capsule_weight = fen
+        else:
+            capsule_weight = fen * (1 / capsule_distance)
+    else:
+        capsule_weight = 0
+    # 靠近 ghost 的权重越高
+    ghost_distance = min([manhattanDistance(newPos, ghost.getPosition()) for ghost in newGhostStates])
+    if ghost_distance == 0:
+        ghost_weight = 99999
+    else:
+        ghost_weight = fen * (1 / ghost_distance)
+    
+    # 当 PacMan 吃到 power pellet 时，食物的权重越高
+    scaredTime = max(newScaredTimes)
+    new_food_weight = food_weight * (1 if scaredTime == 0 else scaredTime)    
+
+    return currentGameState.getScore() + new_food_weight + capsule_weight - ghost_weight
 
 # Abbreviation
 better = betterEvaluationFunction
