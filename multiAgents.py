@@ -253,7 +253,40 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # util.raiseNotDefined()
+        def expectimax(gameState, agentIndex = 0, depth = self.depth):
+            if gameState.isWin() or gameState.isLose() or depth == 0:
+                return (self.evaluationFunction(gameState), None)
+            numAgents = gameState.getNumAgents()
+            nextDepth = depth
+            nextAgentIndex = (agentIndex + 1) % numAgents
+            nextDepth = depth
+            if nextAgentIndex == 0:
+                nextDepth -= 1
+            # 预期最大值是对状态转移的概率做评估
+            # successors = gameState.getLegalSuccessors(agentIndex)
+            actions = gameState.getLegalActions(agentIndex)
+            list = []
+
+            for action in actions:
+                successorGameState = gameState.generateSuccessor(agentIndex, action)
+                value = expectimax(successorGameState, nextAgentIndex, nextDepth)
+                if agentIndex == 0:
+                    list.append((value[0], action))
+                else:
+                    expectedValue = value[0] + value[0] * (1 / len(actions))
+                    list.append((expectedValue, action))
+            
+            if agentIndex == 0:
+                maxValue = max(list, key=lambda x: x[0])
+                return maxValue
+            else:
+                minValue = sum(x[0] for x in list)
+                # 预期值实际上是一个虚拟节点。action 实际是通过 max 计算得出来的。
+                return (minValue, None)
+
+        value = expectimax(gameState)
+        return value[1]
 
 def betterEvaluationFunction(currentGameState: GameState):
     """
